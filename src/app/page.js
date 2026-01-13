@@ -7,7 +7,7 @@ import CareerGuidance from '@/components/home/CareerGuidance'
 
 export default function Home() {
   return (
-    <div>
+    <div className="flex flex-col gap-2">
         <Hero />
         <CareerGuidance />
         <ResumeAnalyzer />

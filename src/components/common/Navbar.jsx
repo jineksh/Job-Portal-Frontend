@@ -6,13 +6,29 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Briefcase, Info, LogIn, LogOut, User, LayoutDashboard, UserCircle, UserPlus } from "lucide-react";
 import { ModeToggle } from "../ModeToggle"
+import { useAuth } from "@/context/authContext"; // Path check kar lena sahi hai na?
 
 export default function Navbar() {
-    const isAuth = true; // Replace with your auth logic
+    // 1. HARDCODED "user" aur "logout" context se aa rahe hain
+    // "loading" ko bhi nikal lo flickering rokne ke liye
+    const { user, logout, loading } = useAuth();
 
-    const logoutHandler = () => {
-        console.log("Logged out");
+    // 2. REPLACE isAuth: Agar user exist karta hai toh authenticated hai
+    const isAuth = !!user; 
+
+    // User ke naam ke initials nikalne ke liye helper (Fallback ke liye)
+    const getInitials = (name) => {
+        if (!name) return "U";
+        return name.split(" ").map(n => n[0]).join("").toUpperCase();
     };
+
+    // Hydration mismatch se bachne ke liye (Next.js 15+ logic)
+    if (loading) return (
+        <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md px-4 md:px-8 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-blue-600">HireMe</div>
+            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+        </nav>
+    );
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md px-4 md:px-8">
@@ -42,33 +58,40 @@ export default function Navbar() {
                     <ModeToggle />
 
                     {isAuth ? (
-                        /* 1. AGAR LOGGED IN HAI (Wahi purana Popover) */
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Avatar className="cursor-pointer">
-                                    <AvatarImage src="https://github.com/shadcn.png" />
-                                    <AvatarFallback>JX</AvatarFallback>
+                                <Avatar className="cursor-pointer border border-blue-100">
+                                    {/* 3. REPLACE Profile Image: Agar user ke paas profilePic hai toh wo dikhao */}
+                                    <AvatarImage src={user?.profilePic || ""} /> 
+                                    <AvatarFallback className="bg-blue-600 text-white">
+                                        {getInitials(user?.name)}
+                                    </AvatarFallback>
                                 </Avatar>
                             </PopoverTrigger>
 
-                            <PopoverContent className="w-56 p-2" align="end">
+                            <PopoverContent className="w-64 p-2" align="end">
                                 <div className="flex items-center gap-3 p-3 mb-2 bg-slate-50 rounded-lg">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarFallback className="bg-blue-100 text-blue-700">JX</AvatarFallback>
+                                        <AvatarImage src={user?.profilePic || ""} />
+                                        <AvatarFallback className="bg-blue-100 text-blue-700">
+                                            {getInitials(user?.name)}
+                                        </AvatarFallback>
                                     </Avatar>
-                                    <div className="flex flex-col">
-                                        <p className="text-sm font-bold text-gray-900 leading-none">Jinex Dev</p>
-                                        <p className="text-xs text-gray-500 mt-1 truncate">jinex@gmail.com</p>
+                                    <div className="flex flex-col overflow-hidden">
+                                        {/* 4. REPLACE HARDCODED NAME & EMAIL */}
+                                        <p className="text-sm font-bold text-gray-900 leading-none truncate">{user?.name}</p>
+                                        <p className="text-xs text-gray-500 mt-1 truncate">{user?.email}</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <Link href="/account">
+                                    <Link href="/profile">
                                         <Button variant="ghost" className="w-full justify-start gap-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50">
                                             <User size={16} /> My Profile
                                         </Button>
                                     </Link>
-                                    <Link href="/dashboard">
+                                    {/* Dashboard link according to role (Optional logic) */}
+                                    <Link href={user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'}>
                                         <Button variant="ghost" className="w-full justify-start gap-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50">
                                             <LayoutDashboard size={16} /> Dashboard
                                         </Button>
@@ -77,7 +100,7 @@ export default function Navbar() {
                                     <Button
                                         variant="ghost"
                                         className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                        onClick={logoutHandler}
+                                        onClick={logout} // 5. REPLACE logoutHandler with actual logout
                                     >
                                         <LogOut size={16} /> Logout
                                     </Button>
@@ -86,7 +109,6 @@ export default function Navbar() {
 
                         </Popover>
                     ) : (
-                        /* 2. AGAR LOGGED IN NAHI HAI (Naya Popover for Login/Signup) */
                         <Popover>
                             <PopoverTrigger asChild>
                                 <button className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none">
@@ -104,7 +126,7 @@ export default function Navbar() {
                                         </Button>
                                     </Link>
 
-                                    <Link href="/signup">
+                                    <Link href="/register">
                                         <Button variant="ghost" className="w-full justify-start gap-3 hover:text-blue-600 hover:bg-blue-50">
                                             <UserPlus size={18} /> Sign Up
                                         </Button>
@@ -119,7 +141,6 @@ export default function Navbar() {
     );
 }
 
-// Reusable NavLink Component for cleaner code
 function NavLink({ href, icon, label }) {
     return (
         <Link
