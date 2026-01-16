@@ -9,9 +9,12 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 import { useLogin } from '@/customHooks/auth/login'
+import { useForgotPassword } from '@/customHooks/auth/useForgotPassword' // Tera custom hook
 
 const LoginPage = () => {
     const { mutate, isPending } = useLogin();
+    const { mutate: forgotMutate, isPending: isForgotPending } = useForgotPassword(); // Forgot hook
+    
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     
@@ -27,6 +30,16 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         mutate(formData);
+    };
+
+    // Sirf Forgot click handle karne ke liye
+    const handleForgotClick = () => {
+        if (!formData.email) {
+            toast.error("Pehle email toh daal de bhai!");
+            return;
+        }
+        // Email input se utha kar seedha bhej rahe hain
+        forgotMutate({ email: formData.email });
     };
 
     return (
@@ -64,7 +77,13 @@ const LoginPage = () => {
                         <div className="space-y-1.5">
                             <div className="flex justify-between items-center">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 ml-1">Password</Label>
-                                <span className="text-[10px] font-bold text-blue-600 cursor-pointer hover:underline">Forgot?</span>
+                                {/* YAHAN CHANGE HAI: onClick par forgotMutate call hoga */}
+                                <span 
+                                    onClick={handleForgotClick}
+                                    className={`text-[10px] font-bold text-blue-600 cursor-pointer hover:underline ${isForgotPending ? 'opacity-50 pointer-events-none' : ''}`}
+                                >
+                                    {isForgotPending ? 'Sending...' : 'Forgot?'}
+                                </span>
                             </div>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />

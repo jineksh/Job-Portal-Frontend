@@ -23,7 +23,7 @@ export const useLogin = () => {
             toast.success("Login successful! Welcome back.");
             login(data.data.user, data.data.token);
             queryClient.invalidateQueries({ queryKey: ["my-profile"] });
-            router.push("/");
+            setTimeout(() => router.push("/"), 1500);
         }
     });
 }

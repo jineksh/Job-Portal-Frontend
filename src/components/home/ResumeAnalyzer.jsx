@@ -21,7 +21,7 @@ const ResumeAnalyzer = () => {
         if (selectedFile?.type === "application/pdf") {
             setFile(selectedFile);
         } else {
-            alert("Bhai, sirf PDF upload karo!");
+            alert("Please select a valid PDF file.");
         }
     };
 

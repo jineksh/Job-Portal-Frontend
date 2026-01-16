@@ -20,7 +20,7 @@ export const useRegister = () => {
         onSuccess: (data) => {
             console.log("Registration successful:", data);
             toast.success("Registration successful! Welcome aboard.");
-            router.push("/login");
+            setTimeout(() => router.push("/login"), 2000);
         }
     });
 };
