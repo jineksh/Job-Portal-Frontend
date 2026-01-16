@@ -29,16 +29,18 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 
       >
-        <AuthProvider>
-          <ThemeProvider>
-            <QueryProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <ThemeProvider>
+
               <Navbar />
               {children}
               <Toaster position="top-center" richColors />
               <Footer />
-            </QueryProvider>
-          </ThemeProvider>
-        </AuthProvider>
+
+            </ThemeProvider>
+          </AuthProvider>
+        </QueryProvider>
 
       </body>
     </html>

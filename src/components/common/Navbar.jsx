@@ -1,34 +1,42 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Briefcase, Info, LogIn, LogOut, User, LayoutDashboard, UserCircle, UserPlus } from "lucide-react";
-import { ModeToggle } from "../ModeToggle"
-import { useAuth } from "@/context/authContext"; // Path check kar lena sahi hai na?
+import { Home, Briefcase, Info, LogIn, LogOut, User, LayoutDashboard, UserCircle, UserPlus, Loader2 } from "lucide-react";
+import { ModeToggle } from "../ModeToggle";
+import { useAuth } from "@/context/authContext";
+import { useUser } from "@/customHooks/profile/useUser"; // Fresh data yahan se aayega
 
 export default function Navbar() {
-    // 1. HARDCODED "user" aur "logout" context se aa rahe hain
-    // "loading" ko bhi nikal lo flickering rokne ke liye
-    const { user, logout, loading } = useAuth();
+    // 1. Auth context se sirf logout aur initial loading lo
+    const { logout, loading: authLoading } = useAuth();
 
-    // 2. REPLACE isAuth: Agar user exist karta hai toh authenticated hai
-    const isAuth = !!user; 
+    // 2. TanStack Query se fresh user data lo jo Profile page ke saath sync rahega
+    const { user: freshUser, isLoading: queryLoading } = useUser();
 
-    // User ke naam ke initials nikalne ke liye helper (Fallback ke liye)
+    // Combined loading state
+    const isLoading = authLoading || queryLoading;
+
+    // Fresh user exist karta hai toh login hai
+    const isAuth = !!freshUser;
+
     const getInitials = (name) => {
         if (!name) return "U";
         return name.split(" ").map(n => n[0]).join("").toUpperCase();
     };
 
-    // Hydration mismatch se bachne ke liye (Next.js 15+ logic)
-    if (loading) return (
-        <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md px-4 md:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-blue-600">HireMe</div>
-            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
-        </nav>
-    );
+    // Loading state UI (Hydration se bachne ke liye)
+    // if (isLoading && !freshUser) {
+    //     return (
+    //         <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md px-4 md:px-8 h-16 flex items-center justify-between">
+    //             <div className="flex items-center gap-2 font-bold text-blue-600">HireMe</div>
+    //             <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+    //         </nav>
+    //     );
+    // }
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md px-4 md:px-8">
@@ -60,11 +68,10 @@ export default function Navbar() {
                     {isAuth ? (
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Avatar className="cursor-pointer border border-blue-100">
-                                    {/* 3. REPLACE Profile Image: Agar user ke paas profilePic hai toh wo dikhao */}
-                                    <AvatarImage src={user?.profilePic || ""} /> 
+                                <Avatar className="cursor-pointer border border-blue-100 hover:opacity-80 transition-opacity">
+                                    <AvatarImage src={freshUser?.profilePic || ""} /> 
                                     <AvatarFallback className="bg-blue-600 text-white">
-                                        {getInitials(user?.name)}
+                                        {getInitials(freshUser?.name)}
                                     </AvatarFallback>
                                 </Avatar>
                             </PopoverTrigger>
@@ -72,15 +79,18 @@ export default function Navbar() {
                             <PopoverContent className="w-64 p-2" align="end">
                                 <div className="flex items-center gap-3 p-3 mb-2 bg-slate-50 rounded-lg">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarImage src={user?.profilePic || ""} />
+                                        <AvatarImage src={freshUser?.profilePic || ""} />
                                         <AvatarFallback className="bg-blue-100 text-blue-700">
-                                            {getInitials(user?.name)}
+                                            {getInitials(freshUser?.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex flex-col overflow-hidden">
-                                        {/* 4. REPLACE HARDCODED NAME & EMAIL */}
-                                        <p className="text-sm font-bold text-gray-900 leading-none truncate">{user?.name}</p>
-                                        <p className="text-xs text-gray-500 mt-1 truncate">{user?.email}</p>
+                                        <p className="text-sm font-bold text-gray-900 leading-none truncate">
+                                            {freshUser?.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-1 truncate">
+                                            {freshUser?.email}
+                                        </p>
                                     </div>
                                 </div>
 
@@ -90,8 +100,7 @@ export default function Navbar() {
                                             <User size={16} /> My Profile
                                         </Button>
                                     </Link>
-                                    {/* Dashboard link according to role (Optional logic) */}
-                                    <Link href={user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'}>
+                                    <Link href={freshUser?.roleId === 1 ? '/admin/dashboard' : '/dashboard'}>
                                         <Button variant="ghost" className="w-full justify-start gap-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50">
                                             <LayoutDashboard size={16} /> Dashboard
                                         </Button>
@@ -100,34 +109,31 @@ export default function Navbar() {
                                     <Button
                                         variant="ghost"
                                         className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                        onClick={logout} // 5. REPLACE logoutHandler with actual logout
+                                        onClick={logout}
                                     >
                                         <LogOut size={16} /> Logout
                                     </Button>
                                 </div>
                             </PopoverContent>
-
                         </Popover>
                     ) : (
                         <Popover>
                             <PopoverTrigger asChild>
-                                <button className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none">
-                                    <UserCircle size={28} className="text-gray-600 dark:text-gray-300" />
+                                <button className="p-1 rounded-full hover:bg-gray-100 transition-colors">
+                                    <UserCircle size={28} className="text-gray-600" />
                                 </button>
                             </PopoverTrigger>
 
                             <PopoverContent className="w-48 p-2 mt-2" align="end">
                                 <div className="flex flex-col gap-1">
                                     <p className="text-xs font-semibold text-gray-400 px-2 py-1 uppercase tracking-wider">Account</p>
-
                                     <Link href="/login">
-                                        <Button variant="ghost" className="w-full justify-start gap-3 hover:text-blue-600 hover:bg-blue-50">
+                                        <Button variant="ghost" className="w-full justify-start gap-3 hover:text-blue-600">
                                             <LogIn size={18} /> Login
                                         </Button>
                                     </Link>
-
                                     <Link href="/register">
-                                        <Button variant="ghost" className="w-full justify-start gap-3 hover:text-blue-600 hover:bg-blue-50">
+                                        <Button variant="ghost" className="w-full justify-start gap-3 hover:text-blue-600">
                                             <UserPlus size={18} /> Sign Up
                                         </Button>
                                     </Link>

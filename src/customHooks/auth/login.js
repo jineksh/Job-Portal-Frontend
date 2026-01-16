@@ -1,6 +1,6 @@
 'use-client'
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { loginUser }from "@/apis/auth/index";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { useAuth } from "@/context/authContext";
 
 export const useLogin = () => {
     const {login,logout} = useAuth();
+    const queryClient = useQueryClient();
     const router = useRouter();
     return useMutation({
         mutationFn: loginUser,
@@ -21,6 +22,7 @@ export const useLogin = () => {
             console.log("Login successful:", data);
             toast.success("Login successful! Welcome back.");
             login(data.data.user, data.data.token);
+            queryClient.invalidateQueries({ queryKey: ["my-profile"] });
             router.push("/");
         }
     });

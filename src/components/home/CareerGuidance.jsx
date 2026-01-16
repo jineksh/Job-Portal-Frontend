@@ -46,7 +46,7 @@ const CareerGuidance = () => {
 
     const handleSubmitToAI = async () => {
         if (skills.length === 0) {
-            toast.error("Bhai, skills toh likho!");
+            toast.error("Please add at least one skill.");
             return;
         }
 

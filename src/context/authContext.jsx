@@ -1,5 +1,7 @@
 'use client';
 import {  createContext, useContext, useEffect,useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 const AuthContext = createContext(null);
 
@@ -7,6 +9,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient(); 
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -31,6 +34,7 @@ export const AuthProvider = ({ children }) => {
         setToken(null);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
+        queryClient.removeQueries({ queryKey: ["my-profile"] });
     };
 
     return (

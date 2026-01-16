@@ -1,8 +1,16 @@
-import React from 'react'
+'use client'
+import React, { useState, useEffect } from 'react' // useEffect add kiya
 import { Briefcase, Github, Twitter, Linkedin, Mail, Heart, ArrowUpRight, Globe } from 'lucide-react'
 import { Button } from '../ui/button';
+
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
+  // 1. Year ko state mein rakhein
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  // 2. Sirf mount hone ke baad date update karein (Hydration safety)
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <footer className="w-full border-t bg-white dark:bg-slate-950 font-sans">
@@ -11,7 +19,7 @@ const Footer = () => {
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-10 mb-16">
           
-          {/* Brand Column - Occupies more space on Desktop */}
+          {/* Brand Column */}
           <div className="md:col-span-5 space-y-6">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-blue-600 rounded-xl shadow-md">
@@ -61,7 +69,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Links Column 3 */}
+          {/* Subscribe Column */}
           <div className="md:col-span-3 space-y-5">
             <h4 className="text-xs font-bold uppercase tracking-widest text-blue-600">Subscribe</h4>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -71,9 +79,10 @@ const Footer = () => {
               <input 
                 type="email" 
                 placeholder="Email address" 
+                autoComplete="off" // Extensions ke liye
                 className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-transparent px-3 py-1 text-xs shadow-sm transition-colors placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
               />
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 h-9 px-4 text-xs">Join</Button>
+              <Button type="button" size="sm" className="bg-blue-600 hover:bg-blue-700 h-9 px-4 text-xs">Join</Button>
             </div>
           </div>
 
@@ -83,6 +92,7 @@ const Footer = () => {
         <div className="pt-8 border-t border-slate-100 dark:border-slate-900 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
             <p className="text-[12px] text-slate-500 dark:text-slate-400">
+              {/* Year safely rendered */}
               © {currentYear} HireMe Inc. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
@@ -107,4 +117,4 @@ const Footer = () => {
   )
 }
 
-export default Footer
+export default Footer;
